@@ -1,5 +1,5 @@
 module.exports = {
-    content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
+    content: ["./src/**/*.{js,jsx,ts,tsx}", "./index.html"],
     mode: "jit",
     theme: {
       fontFamily: {
@@ -30,5 +30,5 @@ module.exports = {
     variants: {
       extend: {},
     },
-    plugins: [require("@tailwindcss/forms")],
+    plugins: [],
   };

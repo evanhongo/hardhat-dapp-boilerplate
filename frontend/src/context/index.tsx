@@ -69,7 +69,7 @@ export const ContractProvider: FC<ContractProviderProps> = ({ children, contract
     }
 
     // We reinitialize it whenever the user changes their account.
-    window.ethereum.on("accountsChanged", async ([newAddress]: string | undefined[]) => {
+    window.ethereum.on("accountsChanged", async ([newAddress]: string[]| undefined) => {
       // `accountsChanged` event can be triggered with an undefined newAddress.
       // This happens when the user removes the Dapp from the "Connected
       // list of sites allowed access to your addresses" (Metamask > Settings > Connections)
@@ -92,7 +92,7 @@ export const ContractProvider: FC<ContractProviderProps> = ({ children, contract
     });
 
     // We reset the dapp state if the network is changed
-    window.ethereum.on("chainChanged", ([networkId]: string | undefined[]) => {
+    window.ethereum.on("chainChanged", ([networkId]: string[] | undefined) => {
       dispatch({ type: "RESET" });
     });
   }, []);

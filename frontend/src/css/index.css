@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind utilities;
+
+@font-face {
+    font-family: "HachiMaruPop";
+    src: url("../assets/font/HachiMaruPop-Regular.ttf") format("opentype");
+}
+
+body {
+    font-family: "HachiMaruPop";
+}
+
+.font-hachimarupop {
+    font-family: "HachiMaruPop";
+}
+
+.white-glassmorphism {
+    background: rgba(77, 71, 86, 0.5);
+    backdrop-filter: blur(5px);
+}

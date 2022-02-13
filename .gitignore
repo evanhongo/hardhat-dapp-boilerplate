@@ -1,5 +1,7 @@
 node_modules
 .idea
+build
+dist
 cypress/videos
 
 #Hardhat files

@@ -1,9 +1,15 @@
 { 
+  "include": ["./src"],
   "exclude": [
-    "node_modules",
-    "build"
+    "node_modules"
   ],
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
     "target": "es5",
     "useDefineForClassFields": true,
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -17,8 +23,7 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": false,
-    "noEmit": true,
+    "noEmit": false,
     "jsx": "react-jsx"
-  },
-  "include": ["./src"]
+  }
 }

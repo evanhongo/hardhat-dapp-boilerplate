@@ -3,7 +3,7 @@
 
 @font-face {
     font-family: "HachiMaruPop";
-    src: url("../assets/font/HachiMaruPop-Regular.ttf") format("opentype");
+    src: url("/src/asset/font/HachiMaruPop-Regular.ttf") format("opentype");
 }
 
 body {

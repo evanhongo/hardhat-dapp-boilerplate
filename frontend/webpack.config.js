@@ -17,6 +17,7 @@ const config = {
     filename: "js/[name].[fullhash].bundle.js",
     publicPath: "",
   },
+  devtool: "eval-source-map",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -94,28 +95,14 @@ const config = {
         ],
       },
       {
-        test: /\.(png|jpe?g|gif|svg)$/i,
-        use: {
-          loader: "url-loader",
-          options: {
-            name: "asset/img/[name].[ext]",
-            limit: 8192,
-            fallback: require.resolve("file-loader"),
-          },
-        },
+        test: /\.(png|jpe?g|gif|woff|woff2|eot|ttf|otf)$/i,
+        type: "asset/resource"
       },
       {
-        test: /\.(woff|woff2|eot|ttf|otf|)$/,
-        use: [
-          {
-            loader: "file-loader",
-            options: {
-              name: "asset/font/[name].[ext]",
-            },
-          },
-        ],
-      },
-    ],
+        test: /\.svg$/i,
+        type: "asset/inline"
+      }
+    ]
   },
   plugins: [
     // new MiniCssExtractPlugin({
@@ -142,7 +129,6 @@ const config = {
 
 module.exports = (env, argv) => {
   if (argv.mode === "development") {
-    config.devtool = "eval-source-map";
     config.plugins.push(new BundleAnalyzerPlugin({ analyzerPort: 3001 }));
     config.plugins.push(new StylelintPlugin());
   } else {

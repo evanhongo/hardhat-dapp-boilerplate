@@ -1,7 +1,7 @@
 import { Contract } from "ethers";
 
-import { DappState } from "../types";
-import { INITIAL_DAPP_STATE } from "../constants";
+import { DappState } from "@/types";
+import { INITIAL_DAPP_STATE } from "@/constants";
 
 export const reducer = (state: DappState, action: { type: string, payload?: Record<string, string | number | Contract> }): DappState => {
   switch (action.type) {

@@ -1,8 +1,8 @@
 import { useRoutes } from "react-router-dom";
 
-import { Header } from "./Header";
-import { useContract } from "../hooks";
-import { routeRules } from "../routes";
+import { Header } from "@/components/Header";
+import { useContract } from "@/hooks";
+import { routeRules } from "@/routes";
 
 export const Dapp = () => {
   const { state } = useContract();

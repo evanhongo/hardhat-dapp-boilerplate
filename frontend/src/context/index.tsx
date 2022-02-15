@@ -10,9 +10,9 @@ import { ethers } from "ethers";
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
-import { HARDHAT_NETWORKID, INITIAL_DAPP_STATE } from "../constants";
-import { DappState } from "../types";
-import { reducer } from "../reducers";
+import { HARDHAT_NETWORKID, INITIAL_DAPP_STATE } from "@/constants";
+import { DappState } from "@/types";
+import { reducer } from "@/reducers";
 
 declare const window: any;
 

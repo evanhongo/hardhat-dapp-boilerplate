@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { RouteObject } from "react-router-dom";
 import { Loader } from "@evanhongo/react-custom-component";
 
-const AsyncCodeOfConduct = lazy(() => import("../components/CodeOfConduct"));
+const AsyncCodeOfConduct = lazy(() => import("@/components/CodeOfConduct"));
 const CodeOfConduct = () => (
   <Suspense
     fallback={
@@ -20,7 +20,7 @@ const CodeOfConduct = () => (
   </Suspense>
 );
 
-const AsyncAbout = lazy(() => import("../components/About"));
+const AsyncAbout = lazy(() => import("@/components/About"));
 const About = () => (
   <Suspense
     fallback={

@@ -2,8 +2,8 @@ import { useCallback } from "react";
 import { Loader } from "@evanhongo/react-custom-component/es";
 import { BsFillWalletFill } from "react-icons/bs";
 
-import { NetworkErrorMessage } from "./NetworkErrorMessage";
-import { useContract } from "../hooks";
+import { NetworkErrorMessage } from "@/components/NetworkErrorMessage";
+import { useContract } from "@/hooks";
 
 export const Header = () => {
   const { state, connectWallet, dismissNetworkError } = useContract();

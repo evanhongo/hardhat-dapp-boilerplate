@@ -3,6 +3,7 @@ node_modules
 build
 dist
 cypress/videos
+dll
 
 #Hardhat files
 cache

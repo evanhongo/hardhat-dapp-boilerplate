@@ -25,36 +25,37 @@ const config = {
   },
   devServer: {
     static: path.resolve(__dirname, "src"),
+    historyApiFallback: true,
     port: 3000,
   },
-  // optimization: {
-  //   splitChunks: {
-  //     cacheGroups: {
-  //       // reactVendor: {
-  //       //   name: "reactVendor",
-  //       //   test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-  //       //   chunks: "all",
-  //       //   enforce: true,
-  //       //   priority: 10,
-  //       // },
-  //       vendors: {
-  //         test: /[\\/]node_modules[\\/]/,
-  //         chunks: "initial",
-  //         name: "vendors",
-  //         enforce: true,
-  //         priority: 20,
-  //         reuseExistingChunk: true
-  //       },
-  //       styles: {
-  //         test: /\.css$/,
-  //         chunks: "all",
-  //         enforce: true,
-  //         priority: 10,
-  //         reuseExistingChunk: true
-  //       }
-  //     }
-  //   }
-  // },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        // reactVendor: {
+        //   name: "reactVendor",
+        //   test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+        //   chunks: "all",
+        //   enforce: true,
+        //   priority: 10,
+        // },
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          chunks: "initial",
+          name: "vendors",
+          enforce: true,
+          priority: 20,
+          reuseExistingChunk: true
+        },
+        styles: {
+          test: /\.css$/,
+          chunks: "all",
+          enforce: true,
+          priority: 10,
+          reuseExistingChunk: true
+        }
+      }
+    }
+  },
   module: {
     rules: [
       {
@@ -151,23 +152,23 @@ module.exports = (env, argv) => {
   }
 
   // Improve build time performance
-  // const dllFiles = fs.readdirSync(path.resolve(__dirname, "dll"));
-  // dllFiles.forEach((file) => {
-  //   if (/.*\.dll\.js$/.test(file)) {
-  //     config.plugins.push(
-  //       new AddAssetHtmlPlugin({
-  //         filepath: path.resolve(__dirname, "dll", file),
-  //       })
-  //     );
-  //   } else if (/.*\.manifest\.json$/.test(file)) {
-  //     config.plugins.push(
-  //       new webpack.DllReferencePlugin({
-  //         context: path.resolve(__dirname, "dll"),
-  //         manifest: path.resolve(__dirname, "dll", file),
-  //       })
-  //     );
-  //   }
-  // });
+  const dllFiles = fs.readdirSync(path.resolve(__dirname, "dll"));
+  dllFiles.forEach((file) => {
+    if (/.*\.dll\.js$/.test(file)) {
+      config.plugins.push(
+        new AddAssetHtmlPlugin({
+          filepath: path.resolve(__dirname, "dll", file),
+        })
+      );
+    } else if (/.*\.manifest\.json$/.test(file)) {
+      config.plugins.push(
+        new webpack.DllReferencePlugin({
+          context: path.resolve(__dirname, "dll"),
+          manifest: path.resolve(__dirname, "dll", file),
+        })
+      );
+    }
+  });
 
   const smp = new SpeedMeasurePlugin();
   const configWithTimeMeasure = smp.wrap(config);

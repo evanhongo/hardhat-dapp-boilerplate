@@ -112,7 +112,7 @@ const config = {
       template: "./index.ejs",
       favicon: "./favicon.ico",
       templateParameters: {
-        title: "Hardhat Dapp",
+        title: "Hardhat Dapp"
       },
       filename: "index.html",
     }),

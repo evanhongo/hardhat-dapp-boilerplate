@@ -3,7 +3,7 @@ import { Contract } from "ethers";
 import { DappState } from "@/types";
 import { INITIAL_DAPP_STATE } from "@/constants";
 
-export const reducer = (state: DappState, action: { type: string, payload?: Record<string, string | number | Contract> }): DappState => {
+export const reducer = (state: DappState = INITIAL_DAPP_STATE, action: { type: string, payload?: Record<string, string | number | Contract> }): DappState => {
   switch (action.type) {
     case "CONNECT_WALLET":
       return {

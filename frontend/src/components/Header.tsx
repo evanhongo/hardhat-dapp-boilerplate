@@ -16,7 +16,7 @@ export const Header = () => {
         </div>
       ) : (
         <button
-          onClick={!address && connectWallet}
+          onClick={!address ? connectWallet : undefined}
           className="flex flex-row justify-center items-center my-5 bg-[#545256] py-3 px-5 rounded-full cursor-pointer hover:bg-[#2E2C30] focus:outline outline-2 outline-dashed"
         >
           <BsFillWalletFill className="mt-1 text-white " />

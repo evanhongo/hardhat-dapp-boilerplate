@@ -1,4 +1,3 @@
-const fs = require("fs");
 const path = require("path");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -7,7 +6,6 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const StylelintPlugin = require("stylelint-webpack-plugin");
-const AddAssetHtmlPlugin = require("add-asset-html-webpack-plugin");
 
 const config = {
   target: "web",
@@ -136,25 +134,6 @@ module.exports = (env, argv) => {
     config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
     config.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
   }
-
-  // Improve build time performance
-  const dllFiles = fs.readdirSync(path.resolve(__dirname, "dll"));
-  dllFiles.forEach((file) => {
-    if (/.*\.dll\.js$/.test(file)) {
-      config.plugins.push(
-        new AddAssetHtmlPlugin({
-          filepath: path.resolve(__dirname, "dll", file),
-        })
-      );
-    } else if (/.*\.manifest\.json$/.test(file)) {
-      config.plugins.push(
-        new webpack.DllReferencePlugin({
-          context: path.resolve(__dirname, "dll"),
-          manifest: path.resolve(__dirname, "dll", file),
-        })
-      );
-    }
-  });
 
   const smp = new SpeedMeasurePlugin();
   const configWithTimeMeasure = smp.wrap(config);

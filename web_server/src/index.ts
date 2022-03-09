@@ -1,5 +1,4 @@
 import path from "path";
-import { fileURLToPath } from "url";
 import chalk from "chalk";
 import express from "express";
 import compression from "compression";
@@ -7,14 +6,17 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 
+import handleLog from "./middleware/handleLog";
+import logger from "./utils/logger";
+
 const startupServer = async () => {
   const server = express();
   const limiter = rateLimit({
     windowMs: 1000 * 60 * 10,
     max: 1000,
   });
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
+  //const __filename = fileURLToPath(import.meta.url);
+  // const __dirname = path.dirname(__filename);
 
   server
     //Removes the X-Powered-By header, which is set by default in some frameworks
@@ -23,14 +25,15 @@ const startupServer = async () => {
       express.static(
         path.join(
           __dirname,
-          "../frontend/build"
+          "../../frontend/build"
         )
       ),
       express.json(),
       express.urlencoded({ extended: true }),
       cookieParser(),
       compression(),
-      limiter
+      limiter,
+      handleLog
       //TODO: disable inline style
       // helmet({
       //   contentSecurityPolicy: {
@@ -55,7 +58,7 @@ const startupServer = async () => {
 
   const PORT = process.env.PORT || 4000;
   server.listen(PORT, () =>
-    console.log(
+    logger.info(
       chalk.red.bgBlue.bold.underline(
         `Server ready at http://localhost:${PORT}`
       )
@@ -65,4 +68,4 @@ const startupServer = async () => {
 
 startupServer();
 
-export { startupServer };
+export { startupServer }

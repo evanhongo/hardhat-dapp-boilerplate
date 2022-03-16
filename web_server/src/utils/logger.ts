@@ -1,45 +1,73 @@
-import { createLogger, format, transports, addColors } from "winston";
-import { TransformableInfo } from "logform";
+import { createLogger, format, transports, addColors, Logger } from "winston";
 
-const config = {
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    http: 3,
-    verbose: 4,
-    debug: 5,
-    silly: 6,
-  },
-  colors: {
-    error: "red",
-    warn: "orange",
-    info: "green",
-    http: "yellow",
-    verbose: "cyan",
-    debug: "blue",
-    silly: "magenta"
-  },
-};
+interface ILogger {
+  info(msg: string): void;
+  warn(msg: string): void;
+  error(msg: string): void;
+  http(msg: string): void;
+}
 
-addColors(config.colors);
+export class WinstonLogger implements ILogger {
+  private logger: Logger;
 
-const formatParams = (info: TransformableInfo) => {
-  const { timestamp, level, message } = info;
-  return `[${timestamp}] ${level}: ${message.replace(/[\r\n]/g, "")}`;
-};
+  constructor() {
+    const config = {
+      levels: {
+        error: 0,
+        warn: 1,
+        info: 2,
+        http: 3,
+        verbose: 4,
+        debug: 5,
+        silly: 6
+      },
+      colors: {
+        error: "red",
+        warn: "orange",
+        data: "grey",
+        info: "green",
+        http: "yellow",
+        verbose: "cyan",
+        debug: "blue",
+        silly: "magenta"
+      }
+    };
+    const formatParams = (info) => {
+      let { timestamp, level, message } = info;
+      message = message.replace(/[\r\n]/g, "");
+      return `[${timestamp}] ${level}: ${message}`;
+    };
+    addColors(config.colors);
+    this.logger = createLogger({
+      level: "http",
+      levels: config.levels,
+      handleExceptions: true,
+      format: format.combine(
+        format.colorize(),
+        format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        format.printf(formatParams)
+      ),
+      transports: [new transports.Console()]
+    });
+  }
 
-// level 在 silly 以上的都會輸出到 console
-const logger = createLogger({
-  level: "silly",
-  //levels: config.levels,
-  handleExceptions: true,
-  format: format.combine(
-    format.colorize(),
-    format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    format.printf(formatParams)
-  ),
-  transports: [new transports.Console()],
-});
+  info(msg: string): void {
+    this.logger.info(msg);
+  }
+
+  warn(msg: string): void {
+    this.logger.warn(msg);
+  }
+
+  error(msg: string): void {
+    this.logger.error(msg);
+  }
+
+  http(msg: string): void {
+    this.logger.http(msg);
+  }
+}
+
+const logger = new WinstonLogger();
 
 export default logger;

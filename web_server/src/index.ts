@@ -4,20 +4,16 @@ import express from "express";
 import compression from "compression";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import rateLimit from "express-rate-limit";
 
-import handleLog from "./middleware/handleLog";
-import logger from "./utils/logger";
+import bodyParser from "./middleware/bodyParser";
+import rateLimiter from "./middleware/rateLimiter";
+import logHandler from "./middleware/logHandler";
+import logger from "./pkg/logger";
 
-const PORT = process.env.PORT || 4000;
 
 const startupServer = async () => {
+  const PORT = process.env.PORT || 4000;
   const server = express();
-  const limiter = rateLimit({
-    windowMs: 1000 * 60 * 10,
-    max: 1000,
-  });
-  
   server
     //Removes the X-Powered-By header, which is set by default in some frameworks
     .disable("x-powered-by")
@@ -26,14 +22,11 @@ const startupServer = async () => {
     .set("trust proxy", 1)
     .use(
       express.static(path.join(__dirname, "../../frontend/build")),
-      express.text(),
-      express.json(),
-      express.urlencoded({ extended: true }),
-      express.raw(),
-      cookieParser(),
       compression(),
-      limiter,
-      handleLog
+      bodyParser(),
+      cookieParser(),
+      rateLimiter(),
+      logHandler()
       //TODO: disable inline style
       // helmet({
       //   contentSecurityPolicy: {
@@ -46,7 +39,10 @@ const startupServer = async () => {
       // })
     )
     //for health check
-    .get("/ping", (req, res) => res.send("pong"))
+    .get("/ping", (req, res) => {
+      logger.info(req.body);
+      res.send("pong");
+    })
     .get("*", (req, res) => {
       res.render("index");
     })
@@ -60,5 +56,3 @@ const startupServer = async () => {
 };
 
 startupServer();
-
-export { startupServer };

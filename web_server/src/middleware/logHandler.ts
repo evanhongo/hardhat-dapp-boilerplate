@@ -1,5 +1,5 @@
 import morgan from "morgan";
-import logger from "../utils/logger";
+import logger from "../pkg/logger";
 
 morgan.token("status", (_, res) => {
   const status = res.headersSent ? res.statusCode : undefined;
@@ -24,15 +24,12 @@ const production =
   ":remote-addr :method :url :status :response-time ms :user-agent";
 const morganFormat = process.env.NODE_ENV === "production" ? production : dev;
 
-// const accessLogStream = fs.createWriteStream(
-//   path.join(__dirname, "access.log"),
-//   { flags: "a" }
-// );
-
-export default morgan(morganFormat, {
+const logHandler = () => morgan(morganFormat, {
   stream: {
     write: (msg) => {
       logger.http(msg);
     }
-  } /*accessLogStream*/
+  }
 });
+
+export default logHandler;

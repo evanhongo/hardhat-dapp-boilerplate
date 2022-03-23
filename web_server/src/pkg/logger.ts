@@ -1,5 +1,5 @@
 import { createLogger, format, transports, addColors, Logger } from "winston";
-
+import { TransformableInfo } from "logform";
 interface ILogger {
   info(msg: string): void;
   warn(msg: string): void;
@@ -32,9 +32,9 @@ export class WinstonLogger implements ILogger {
         silly: "magenta"
       }
     };
-    const formatParams = (info) => {
+    const formatParams = (info: TransformableInfo) => {
       let { timestamp, level, message } = info;
-      message = message.replace(/[\r\n]/g, "");
+      message =  message.toString().replace(/[\r\n]/g, "");
       return `[${timestamp}] ${level}: ${message}`;
     };
     addColors(config.colors);

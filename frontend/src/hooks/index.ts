@@ -3,23 +3,29 @@ import { TypedUseSelectorHook, useSelector, useDispatch } from "react-redux";
 import { ethers } from "ethers";
 
 import { HARDHAT_NETWORKID, ContractInfo } from "@/constants";
-import type { RootState, AppDispatch } from '@/store'
+import {
+  _connectWallet,
+  _connectWalletSuccess,
+  _getError,
+  _changeAccount,
+  _changeAccountSuccess,
+  _dismissError,
+  _reset,
+} from "@/slices/ether";
+import type { RootState, AppDispatch } from "@/store";
 
 declare const window: any;
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
-const useAppDispatch = () => useDispatch<AppDispatch>()
+const useAppDispatch = () => useDispatch<AppDispatch>();
 
-export const useContract = () => {
-  const state = useAppSelector(state => state);
+export const useEtherChain = () => {
+  const state = useAppSelector((state) => state.ether);
   const dispatch = useAppDispatch();
-  
-  const connectWallet = useCallback(async () => {
-    dispatch({ type: "CONNECT_WALLET" });
+
+  const connect = useCallback(async () => {
+    dispatch(_connectWallet());
     if (window.ethereum.networkVersion !== HARDHAT_NETWORKID) {
-      dispatch({
-        type: "GET_NETWORK_ERROR",
-        payload: { message: "Please connect Metamask to Localhost:8545" },
-      });
+      dispatch(_getError("Please connect Metamask to Localhost:8545"));
       return;
     }
 
@@ -31,11 +37,7 @@ export const useContract = () => {
       if (!accounts.length) throw Error("No accounts found");
       selectedAddress = accounts[0];
     } catch (err) {
-      console.error(err);
-      dispatch({
-        type: "GET_NETWORK_ERROR",
-        payload: { message: err as string },
-      });
+      dispatch(_getError(err));
       return;
     }
 
@@ -51,22 +53,14 @@ export const useContract = () => {
       const tokenName = await contract.name();
       const tokenSymbol = await contract.symbol();
       const balance = await contract.balanceOf(selectedAddress);
-      dispatch({
-        type: "GET_WALLET_INFO",
-        payload: {
-          contract,
-          tokenName,
-          tokenSymbol,
-          account: selectedAddress,
-          balance,
-        },
-      });
+      dispatch(
+        _connectWalletSuccess({
+          tokenData: { name: tokenName, symbol: tokenSymbol },
+          walletInput: { address: selectedAddress, balance: balance.toString() },
+        })
+      );
     } catch (err) {
-      console.error(err);
-      dispatch({
-        type: "GET_NETWORK_ERROR",
-        payload: { message: err as string },
-      });
+      dispatch(_getError(err));
       return;
     }
 
@@ -79,27 +73,16 @@ export const useContract = () => {
         // list of sites allowed access to your addresses" (Metamask > Settings > Connections)
         // To avoid errors, we reset the dapp state
         if (newAddress === undefined) {
-          dispatch({ type: "GET_NETWORK_ERROR" });
+          dispatch(_getError("Invalid address"));
           return;
         }
-
+        
+        dispatch(_changeAccount());
         try {
-          const contract = new ethers.Contract(
-            ContractInfo.address,
-            ContractInfo.abi,
-            provider.getSigner(0)
-          );
           const balance = await contract.balanceOf(newAddress);
-          dispatch({
-            type: "CHANGE_ACCOUNT",
-            payload: { account: newAddress, balance },
-          });
+          dispatch(_changeAccountSuccess({ address: newAddress, balance: balance.toString() }));
         } catch (err) {
-          console.error(err);
-          dispatch({
-            type: "GET_NETWORK_ERROR",
-            payload: { message: err as string },
-          });
+          dispatch(_getError(err));
           return;
         }
       }
@@ -107,18 +90,23 @@ export const useContract = () => {
 
     // We reset the dapp state if the network is changed
     window.ethereum.on("chainChanged", ([networkId]: string[] | undefined) => {
-      dispatch({ type: "RESET" });
+      dispatch(_reset());
     });
   }, []);
 
-  const dismissNetworkError = useCallback(() => {
-    dispatch({ type: "DISMISS_NETWORK_ERROR" });
+  const dismissError = useCallback(() => {
+    dispatch(_dismissError());
   }, []);
 
   useEffect(() => {
     if (window.ethereum === undefined)
-      dispatch({ type: "GET_NETWORK_ERROR", payload: { message: "Please install MetaMask." } });  
+      dispatch(_getError("Please install MetaMask."));
   }, []);
 
-  return { state, connectWallet, dismissNetworkError };
+  return { state, connect, dismissError };
 };
+
+export const useWallet = () => {
+  const wallet = useAppSelector((state) => state.wallet);
+  return { wallet };
+}

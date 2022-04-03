@@ -3,20 +3,25 @@ import { Loader } from "@evanhongo/react-custom-component/es";
 import { BsFillWalletFill } from "react-icons/bs";
 
 import { NetworkErrorMessage } from "@/components/NetworkErrorMessage";
-import { useContract } from "@/hooks";
+import { useEtherChain, useWallet } from "@/hooks";
+import {
+  EtherChainStatus
+} from "@/slices/ether";
 
 export const Header = () => {
-  const { state, connectWallet, dismissNetworkError } = useContract();
-  const { selectedAddress, loading, networkError } = state;
+  const { state, connect, dismissError } = useEtherChain();
+  const { status, error } = state;
+  const { wallet } = useWallet();
+  
   const renderBtn = useCallback(
-    (address: string | undefined, loading: boolean, error: string | undefined) =>
-      error?.includes("install") ? <></> : loading ? (
+    (address: string | undefined, status: string, error: string | undefined) =>
+      error?.includes("install") ? <></> : status === "loading" ? (
         <div className="my-5">
           <Loader type="spinning" />
         </div>
       ) : (
         <button
-          onClick={!address ? connectWallet : undefined}
+          onClick={!address ? connect : undefined}
           className="flex flex-row justify-center items-center my-5 bg-[#545256] py-3 px-5 rounded-full cursor-pointer hover:bg-[#2E2C30] focus:outline outline-2 outline-dashed"
         >
           <BsFillWalletFill className="mt-1 text-white " />
@@ -27,20 +32,20 @@ export const Header = () => {
           </p>
         </button>
       ),
-    [connectWallet]
+    [connect]
   );
 
   return (
     <div className="flex flex-row-reverse items-center w-full h-[5rem] white-glassmorphism">
       <div className="mr-3">
-        {renderBtn(selectedAddress, loading, networkError)}
+        {renderBtn(wallet?.address, status, error)}
       </div>
       <div className="mr-3">
         {/* Metamask network should be set to Localhost:8545. */}
-        {networkError && (
+        {status ===  EtherChainStatus.FAILURE && (
           <NetworkErrorMessage
-            message={networkError}
-            dismiss={dismissNetworkError}
+            message={error}
+            dismiss={dismissError}
           />
         )}
       </div>

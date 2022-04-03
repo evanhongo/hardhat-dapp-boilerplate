@@ -4,11 +4,11 @@ import { Provider } from "react-redux";
 
 import { store } from "@/store";
 
-interface ContractProviderProps {
+interface EtherProviderProps {
   children: ReactNode
 }
 
-export const ContractProvider = ({ children }: ContractProviderProps) => {
+export const EtherProvider = ({ children }: EtherProviderProps) => {
   return (
     <Provider store={store}>
       {children}

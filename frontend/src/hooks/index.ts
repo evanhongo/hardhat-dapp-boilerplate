@@ -11,8 +11,8 @@ import {
   _changeAccountSuccess,
   _dismissError,
   _reset,
-} from "@/slices/ether";
-import type { RootState, AppDispatch } from "@/store";
+} from "@/redux/slices/ether";
+import type { RootState, AppDispatch } from "@/redux/store";
 
 declare const window: any;
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

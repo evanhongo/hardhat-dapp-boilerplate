@@ -1,8 +1,9 @@
 import { ReactNode
 } from "react";
 import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 
-import { store } from "@/store";
+import { store, persistor } from "@/redux/store";
 
 interface EtherProviderProps {
   children: ReactNode
@@ -11,7 +12,9 @@ interface EtherProviderProps {
 export const EtherProvider = ({ children }: EtherProviderProps) => {
   return (
     <Provider store={store}>
-      {children}
+      <PersistGate persistor={persistor}>
+        {children}
+      </PersistGate>
     </Provider>
   );
 };

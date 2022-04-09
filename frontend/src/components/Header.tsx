@@ -6,7 +6,7 @@ import { NetworkErrorMessage } from "@/components/NetworkErrorMessage";
 import { useEtherChain, useWallet } from "@/hooks";
 import {
   EtherChainStatus
-} from "@/slices/ether";
+} from "@/redux/slices/ether";
 
 export const Header = () => {
   const { state, connect, dismissError } = useEtherChain();

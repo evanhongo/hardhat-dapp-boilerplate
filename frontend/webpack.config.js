@@ -6,6 +6,9 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const StylelintPlugin = require("stylelint-webpack-plugin");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const config = {
   target: "web",

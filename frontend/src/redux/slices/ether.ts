@@ -1,10 +1,16 @@
-import { createReducer, createAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { ethers } from "ethers";
+
+import { RootState } from "@/redux/store";
+import { HARDHAT_NETWORKID, ContractInfo } from "@/constants";
+
+declare const window: any;
 
 export enum EtherChainStatus {
   IDLE = "idle",
-  LOADING = "loading",
+  PENDING = "pending",
   SUCCESS = "success",
-  FAILURE = "failure",
+  FAILURE = "failure"
 }
 
 interface TokenData {
@@ -12,88 +18,152 @@ interface TokenData {
   symbol: string;
 }
 
-interface EtherChain {
-  status: EtherChainStatus;
-  error?: string;
-  // The info of the token (i.e. It"s Name and symbol)
-  tokenData?: TokenData;
-}
-
 interface Wallet {
   address: string;
   balance: string;
+}
+
+interface EtherChain {
+  status: EtherChainStatus;
+  error: string;
+  // The info of the token (i.e. It"s Name and symbol)
+  tokenData: TokenData;
+  wallet: Wallet;
 }
 
 const INITIAL_ETHER_Chain_STATE: EtherChain = {
   status: EtherChainStatus.IDLE,
   error: undefined,
   tokenData: undefined,
+  wallet: undefined
 };
 
-const INITIAL_WALLET_STATE: Wallet = {
-  address: undefined,
-  balance: undefined,
-};
+interface ConnectWalletResponse {
+  tokenData: TokenData;
+  wallet: Wallet;
+}
 
-export const _connectWallet = createAction<undefined, "connectWallet">(
-  "connectWallet"
-);
-export const _connectWalletSuccess = createAction<
-  { tokenData: TokenData; walletInput: Wallet },
-  "connectWalletSuccess"
->("connectWalletSuccess");
-export const _getError = createAction<string, "getError">("getError");
-export const _changeAccount = createAction<undefined, "changeAccount">(
-  "changeAccount"
-);
-export const _changeAccountSuccess = createAction<Wallet, "changeAccountSuccess">(
-  "changeAccountSuccess"
-);
-export const _dismissError = createAction<undefined, "dismissError">(
-  "dismissError"
-);
-export const _reset = createAction<undefined, "reset">("reset");
+// export type RootState = ReturnType<typeof store.getState>;
+export const connectWallet = createAsyncThunk<ConnectWalletResponse, void, { state: RootState }>("ether/connectWalletByStatus", async (_, { getState, dispatch, requestId }) => {
+  const { status } = getState().ether;
 
-export const etherReducer = createReducer(
-  INITIAL_ETHER_Chain_STATE,
-  (builder) => {
+  // const { currentRequestId, loading } = getState()
+  if (status !== EtherChainStatus.PENDING /* ||requestId !== currentRequestId */) {
+    return;
+  }
+
+  if (window.ethereum === undefined) throw Error("Please install MetaMask.");
+
+  if (window.ethereum.networkVersion !== HARDHAT_NETWORKID) throw Error("Please connect Metamask to Localhost:8545");
+
+  let selectedAddress: string;
+  try {
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
+    if (!accounts.length) throw Error("No accounts found");
+    selectedAddress = accounts[0];
+  } catch (err) {
+    throw Error(err);
+  }
+
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const contract = new ethers.Contract(ContractInfo.address, ContractInfo.abi, provider.getSigner(0));
+
+  try {
+    const tokenName = await contract.name();
+    const tokenSymbol = await contract.symbol();
+    const balance = await contract.balanceOf(selectedAddress);
+
+    window.ethereum.on("accountsChanged", async ([newAddress]: string[] | undefined) => {
+      // `accountsChanged` event can be triggered with an undefined newAddress.
+      // This happens when the user removes the Dapp from the "Connected
+      // list of sites allowed access to your addresses" (Metamask > Settings > Connections)
+      // To avoid errors, we reset the dapp state
+      if (newAddress === undefined) {
+        dispatch(setError("Invalid address"));
+        return;
+      }
+
+      dispatch(changeAccount());
+      try {
+        const balance = await contract.balanceOf(newAddress);
+        dispatch(changeAccountSuccess({ address: newAddress, balance: balance.toString() }));
+      } catch (err) {
+        dispatch(setError(err));
+      }
+    });
+
+    // We reset the dapp state if the network is changed
+    window.ethereum.once("chainChanged", ([networkId]: string[] | undefined) => {
+      dispatch(reset());
+    });
+
+    return {
+      tokenData: { name: tokenName, symbol: tokenSymbol },
+      wallet: { address: selectedAddress, balance: balance.toString() }
+    };
+  } catch (err) {
+    throw Error(err);
+  }
+  // const response = await userAPI.fetchById(userId)
+  // return response.data
+});
+
+const etherSlice = createSlice({
+  name: "ether",
+  initialState: INITIAL_ETHER_Chain_STATE,
+  reducers: {
+    changeAccount: (state) => {
+      state.status = EtherChainStatus.PENDING;
+    },
+    changeAccountSuccess: (state, action: PayloadAction<Wallet>) => {
+      state.status = EtherChainStatus.SUCCESS;
+      state.wallet = action.payload;
+    },
+    setError: (state, action) => {
+      state.error = action.payload;
+    },
+    dismissError: (state) => {
+      state.error = undefined;
+    },
+    reset: () => INITIAL_ETHER_Chain_STATE
+  },
+  extraReducers: (builder) => {
     builder
-      .addCase(_connectWallet, (state) => {
-        state.status = EtherChainStatus.LOADING;
+      .addCase(connectWallet.pending, (state, action) => {
+        if (state.status === EtherChainStatus.IDLE) {
+          state.status = EtherChainStatus.PENDING;
+          // state.currentRequestId = action.meta.requestId
+        }
       })
-      .addCase(_connectWalletSuccess, (state, action) => {
-        state.status = EtherChainStatus.SUCCESS;
-        state.tokenData = action.payload.tokenData;
+      .addCase(connectWallet.fulfilled, (state, action) => {
+        const { requestId } = action.meta;
+        if (
+          state.status === EtherChainStatus.PENDING /* &&
+        state.currentRequestId === requestId */
+        ) {
+          state.status = EtherChainStatus.SUCCESS;
+          state.error = undefined;
+          state.tokenData = action.payload.tokenData;
+          state.wallet = action.payload.wallet;
+          // state.currentRequestId = undefined
+        }
       })
-      .addCase(_getError, (state, action) => {
-        state.status = EtherChainStatus.FAILURE;
-        state.error = action.payload;
-      })
-      .addCase(_dismissError, (state) => {
-        state.status = EtherChainStatus.IDLE;
-        state.error = undefined;
-      })
-      .addCase(_changeAccount, (state) => {
-        state.status = EtherChainStatus.LOADING;
-      })
-      .addCase(_changeAccountSuccess, (state) => {
-        state.status = EtherChainStatus.SUCCESS;
-      })
-      .addCase(_reset, () => {
-        return INITIAL_ETHER_Chain_STATE;
+      .addCase(connectWallet.rejected, (state, action) => {
+        const { requestId } = action.meta;
+        if (
+          state.status === EtherChainStatus.PENDING // &&
+          // state.currentRequestId === requestId
+        ) {
+          state.status = EtherChainStatus.IDLE;
+          state.error = action.error.message;
+          // state.currentRequestId = undefined
+        }
       });
   }
-);
-
-export const walletReducer = createReducer(INITIAL_WALLET_STATE, (builder) => {
-  builder
-    .addCase(_connectWalletSuccess, (_, action) => {
-      return action.payload.walletInput;
-    })
-    .addCase(_changeAccountSuccess, (_, action) => {
-      return action.payload;
-    })
-    .addCase(_reset, () => {
-      return INITIAL_WALLET_STATE;
-    });
 });
+
+export const { changeAccount, changeAccountSuccess, setError, dismissError, reset } = etherSlice.actions;
+
+export default etherSlice;

@@ -3,7 +3,7 @@ import contractArtifacts from "@/contracts/contract-artifacts.json";
 
 export const HARDHAT_NETWORKID = "31337";
 export const ContractInfo = {
-    address: contractAddress.address,
-    abi: contractArtifacts.abi
+  address: contractAddress.address,
+  abi: contractArtifacts.abi
 };
 export const ERROR_CODE_TX_REJECTED_BY_USER = 4001;

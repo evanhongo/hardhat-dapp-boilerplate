@@ -1,20 +1,18 @@
-import { ReactNode
-} from "react";
-import { Provider } from "react-redux";
+import { ReactNode } from "react";
+import { Provider, TypedUseSelectorHook, useSelector, useDispatch } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
-import { store, persistor } from "@/redux/store";
+import { store, persistor, RootState, AppDispatch } from "@/redux/store";
 
 interface EtherProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export const EtherProvider = ({ children }: EtherProviderProps) => {
-  return (
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        {children}
-      </PersistGate>
-    </Provider>
-  );
-};
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+
+export const EtherProvider = ({ children }: EtherProviderProps) => (
+  <Provider store={store}>
+    <PersistGate persistor={persistor}>{children}</PersistGate>
+  </Provider>
+);

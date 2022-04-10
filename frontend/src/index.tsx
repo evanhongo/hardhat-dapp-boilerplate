@@ -6,10 +6,10 @@ import { Dapp } from "@/DappV2";
 import "@/css/index.css";
 
 ReactDOM.render(
-    <EtherProvider>
-      <Router>
-        <Dapp />    
-      </Router>      
-    </EtherProvider>,
+  <EtherProvider>
+    <Router>
+      <Dapp />
+    </Router>
+  </EtherProvider>,
   document.getElementById("root")
 );

@@ -5,16 +5,16 @@ import { Loader } from "@evanhongo/react-custom-component";
 const AsyncCodeOfConduct = lazy(() => import("@/components/CodeOfConduct"));
 const CodeOfConduct = () => (
   <Suspense
-    fallback={
+    fallback={(
       <Loader
         type="spinning"
         style={{
           width: "50%",
           height: "50%",
-          margin: "auto",
+          margin: "auto"
         }}
       />
-    }
+    )}
   >
     <AsyncCodeOfConduct />
   </Suspense>
@@ -23,16 +23,16 @@ const CodeOfConduct = () => (
 const AsyncAbout = lazy(() => import("@/components/About"));
 const About = () => (
   <Suspense
-    fallback={
+    fallback={(
       <Loader
         type="spinning"
         style={{
           width: "50%",
           height: "50%",
-          margin: "auto",
+          margin: "auto"
         }}
       />
-    }
+    )}
   >
     <AsyncAbout />
   </Suspense>
@@ -51,7 +51,7 @@ export const routeRules: RouteObject[] = [
       //   path: "",
       //   element:
       // }
-    ],
+    ]
   },
-  { path: "about", element: <About /> },
+  { path: "about", element: <About /> }
 ];

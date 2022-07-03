@@ -6,8 +6,8 @@ import { useEffect } from "react";
 
 import HtmlTitle from "@/components/HtmlTitle";
 import { useAppSelector } from "@/hooks";
-
-const Header = dynamic(() => import("@/components/Header"), { ssr: false });
+import Header from "@/components/Header";
+// const Header = dynamic(() => import("@/components/Header"), { ssr: false });
 
 const Main: NextPage = () => {
   const wallet = useAppSelector(state => state.ether.wallet);

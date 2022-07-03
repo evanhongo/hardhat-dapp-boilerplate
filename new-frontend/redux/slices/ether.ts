@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { ethers } from "ethers";
 import Web3Modal, { IProviderOptions } from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
@@ -6,9 +6,7 @@ import CoinbaseWalletSDK from "@coinbase/wallet-sdk";
 import Torus from "@toruslabs/torus-embed";
 
 import { RootState } from "@/redux/store";
-import { HARDHAT_NETWORKID, EtherChainStatus, ContractInfo } from "@/constants";
-
-declare const window: any;
+import { EtherChainStatus, ContractInfo } from "@/constants";
 
 interface TokenData {
   name: string;
@@ -39,22 +37,7 @@ const INITIAL_ETHER_Chain_STATE: EtherChain = {
   wallet: undefined
 };
 
-// let web3Modal: any;
-// if (typeof window !== "undefined") {
-//   web3Modal = new Web3Modal({
-//     cacheProvider: false,
-//     providerOptions: {
-//       walletconnect: {
-//         package: WalletConnectProvider, // required
-//         options: {
-//           rpc: { 42: process.env.NEXT_PUBLIC_RPC_URL } // required
-//         }
-//       }
-//     }
-//   });
-// }
-
-const genProviderOptions = (provider: string): IProviderOptions => {
+const genProviderOptions = (): IProviderOptions => {
   return {
     injected: {
       display: {
@@ -81,14 +64,13 @@ const genProviderOptions = (provider: string): IProviderOptions => {
   };
 };
 
-// export type RootState = ReturnType<typeof store.getState>;
 export const connectWallet = createAsyncThunk<
   ConnectWalletResponse,
-  { provider: string },
+  void,
   { state: RootState }
 >(
   "ether/connectWalletByStatus",
-  async (payload, { getState, dispatch, requestId }) => {
+  async (_, { getState, dispatch, requestId }) => {
     const { status } = getState().ether;
 
     // const { currentRequestId, loading } = getState()
@@ -98,57 +80,41 @@ export const connectWallet = createAsyncThunk<
       return;
     }
 
-    const providerOptions = genProviderOptions(payload.provider);
+    const providerOptions = genProviderOptions();
     const web3Modal = new Web3Modal({
       // network: "mainnet", // optional
       // cacheProvider: true, // optional
       providerOptions // required
     });
-
+    
     try {
-      const instance = await web3Modal.connect();
-      const provider = new ethers.providers.Web3Provider(instance);
-      const accounts = await provider.listAccounts();
-      if (!accounts.length) 
+      const provider = await web3Modal.connect();
+      const web3 = new ethers.providers.Web3Provider(provider);
+      const accounts = await web3.listAccounts();
+      if (!accounts.length)
         throw Error("No accounts found");
-
-      provider.on("accountsChanged", async (accounts: string[]) => {
-        if (!accounts[0]) {
-          dispatch(setError("Invalid address"));
-          return;
-        }
-
-        dispatch(changeAccount());
-        try {
-          const balance = await contract.balanceOf(accounts[0]);
-          dispatch(
-            changeAccountSuccess({
-              address: accounts[0],
-              balance: balance.toString()
-            })
-          );
-        } catch (err) {
-          dispatch(setError(err));
-        }
-      });
-
-      provider.once("chainChanged", (chainId: number) => {
-        dispatch(reset());
-      });
-
-      provider.on("disconnect", (error: { code: number; message: string }) => {
-        console.log(error);
-      });
 
       const contract = new ethers.Contract(
         ContractInfo.address,
         ContractInfo.abi,
-        provider.getSigner()
+        web3.getSigner()
       );
-
       const tokenName = await contract.name();
       const tokenSymbol = await contract.symbol();
       const balance = await contract.balanceOf(accounts[0]);
+
+      provider.on("accountsChanged", () => {                
+        dispatch(reset());
+      });
+
+      provider.once("chainChanged", () => {
+        dispatch(reset());
+      });
+
+      provider.on("disconnect", (error: { code: number; message: string }) => {
+        console.error(error);
+        dispatch(reset());        
+      });
 
       return {
         tokenData: { name: tokenName, symbol: tokenSymbol },
@@ -163,15 +129,9 @@ export const connectWallet = createAsyncThunk<
 const etherSlice = createSlice({
   name: "ether",
   initialState: INITIAL_ETHER_Chain_STATE,
-  reducers: {
-    changeAccount: (state) => {
-      state.status = EtherChainStatus.PENDING;
-    },
-    changeAccountSuccess: (state, action: PayloadAction<Wallet>) => {
-      state.status = EtherChainStatus.SUCCESS;
-      state.wallet = action.payload;
-    },
+  reducers: {    
     setError: (state, action) => {
+      state.status = EtherChainStatus.FAILURE;
       state.error = action.payload;
     },
     reset: () => INITIAL_ETHER_Chain_STATE
@@ -179,7 +139,7 @@ const etherSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(connectWallet.pending, (state) => {
-        if (state.status === EtherChainStatus.IDLE) {
+        if ([EtherChainStatus.IDLE, EtherChainStatus.FAILURE].includes(state.status)) {
           state.status = EtherChainStatus.PENDING;
           state.error = undefined;
           // state.currentRequestId = action.meta.requestId
@@ -203,7 +163,7 @@ const etherSlice = createSlice({
           state.status === EtherChainStatus.PENDING // &&
           // state.currentRequestId === requestId
         ) {
-          state.status = EtherChainStatus.IDLE;
+          state.status = EtherChainStatus.FAILURE;
           state.error = action.error.message;
           // state.currentRequestId = undefined
         }
@@ -212,10 +172,7 @@ const etherSlice = createSlice({
 });
 
 export const {
-  changeAccount,
-  changeAccountSuccess,
   setError,
-  dismissError,
   reset
 } = etherSlice.actions;
 

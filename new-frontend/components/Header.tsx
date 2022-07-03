@@ -3,8 +3,7 @@ import { Loader } from "@evanhongo/react-custom-component";
 import { BsFillWalletFill } from "react-icons/bs";
 import toast from "react-hot-toast";
 
-import { NetworkErrorMessage } from "@/components/NetworkErrorMessage";
-import { connectWallet, dismissError } from "@/redux/slices/ether";
+import { connectWallet } from "@/redux/slices/ether";
 import { useAppSelector, useAppDispatch } from "@/hooks";
 import { EtherChainStatus } from "@/constants";
 
@@ -18,7 +17,7 @@ const Header = () => {
   }, [error]);
 
   const connect = useCallback(() => {
-    dispatch(connectWallet({ provider: "metamask" }));
+    dispatch(connectWallet());
   }, []);
 
   const renderBtn = useCallback(
